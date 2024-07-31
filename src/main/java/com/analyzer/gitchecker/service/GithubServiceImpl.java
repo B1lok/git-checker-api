@@ -25,11 +25,15 @@ public class GithubServiceImpl implements GithubService {
         .retrieve()
         .onStatus(
             HttpStatusCode::is4xxClientError,
-            response -> Mono.error(new GithubRepositoryNotFoundException("Repositories not found for user: " + username))
+            response -> Mono.error(
+                new GithubRepositoryNotFoundException("Repositories not found for user: " + username
+                ))
         )
         .onStatus(
             HttpStatusCode::is5xxServerError,
-            response -> Mono.error(new GithubClientException("Server error while fetching repositories for user: " + username))
+            response -> Mono.error(
+                new GithubClientException("Server error while fetching repositories for user: " + username
+                ))
         )
         .bodyToFlux(GithubRepositoryDto.class)
         .filter(repo -> !repo.isFork())
@@ -40,15 +44,18 @@ public class GithubServiceImpl implements GithubService {
 
   private Mono<GithubRepositoryDto> getBranchesForRepository(GithubRepositoryDto repo) {
     return webClient.get()
-        .uri("https://api.github.com/repos/{owner}/{repo}/branches", repo.getOwnerLogin(), repo.getRepositoryName())
+        .uri("https://api.github.com/repos/{owner}/{repo}/branches",
+            repo.getOwnerLogin(), repo.getRepositoryName())
         .retrieve()
         .onStatus(
             HttpStatusCode::is4xxClientError,
-            response -> Mono.error(new GithubBranchException("Branches not found for repository: " + repo.getRepositoryName()))
+            response -> Mono.error(
+                new GithubBranchException("Branches not found for repository: " + repo.getRepositoryName()))
         )
         .onStatus(
             HttpStatusCode::is5xxServerError,
-            response -> Mono.error(new GithubClientException("Server error while fetching branches for repository: " + repo.getRepositoryName()))
+            response -> Mono.error(
+                new GithubClientException("Server error while fetching branches for repository: " + repo.getRepositoryName()))
         )
         .bodyToFlux(GithubBranchDto.class)
         .collectList()
