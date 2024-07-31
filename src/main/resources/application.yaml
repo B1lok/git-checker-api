@@ -1,0 +1,6 @@
+spring:
+  application:
+    name: git-checker
+address:
+  base:
+    url: https://api.github.com
