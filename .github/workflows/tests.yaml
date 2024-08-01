@@ -4,7 +4,7 @@ on:
   pull_request:
     branches: [ main ]
   push:
-    branches: [main]
+    branches: [ main ]
 
 jobs:
   build:
@@ -21,3 +21,29 @@ jobs:
         run: mvn -B install --file pom.xml
         env:
           base_api_url: ${{ secrets.BASE_API_URL }}
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+      - name: Set up Docker Build
+        uses: docker/setup-buildx-action@v3
+      - name: Build and push
+        env:
+          BASE_API_URL: ${{ secrets.BASE_API_URL }}
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/git-checker:latest
+  deploy:
+    needs: build
+    runs-on: [ aws-ec2 ]
+    steps:
+      - name: Pull Image from docker hub
+        run: sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/git-checker:latest
+      - name: Delete old container
+        run: sudo docker rm -f git-checker-container
+      - name: Run Docker Image
+        run: sudo docker run -d -p 8080:8080 --name git-checker-container ${{ secrets.DOCKERHUB_USERNAME }}/git-checker:latest

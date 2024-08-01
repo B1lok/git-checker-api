@@ -1,0 +1,11 @@
+version: "3.9"
+services:
+  git-checker:
+    image: git-checker:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - '8080:8080'
+    environment:
+      - BASE_API_URL=${BASE_API_URL}
